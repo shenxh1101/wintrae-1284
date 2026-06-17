@@ -14,7 +14,13 @@ const Storage = {
     sceneStats: {},
     categoryStats: {},
     dailyStats: {},
-    weakCategories: []
+    weakCategories: [],
+    modeStats: {
+      training: { total: 0, correct: 0, wrong: 0 },
+      challenge: { total: 0, correct: 0, wrong: 0 },
+      review: { total: 0, correct: 0, wrong: 0 }
+    },
+    sessions: []
   },
 
   defaultSettings: {
@@ -22,7 +28,8 @@ const Storage = {
     keyHint: true,
     autoNext: true,
     questionsPerLevel: 10,
-    challengeTime: 60
+    challengeTime: 60,
+    challengeCategories: ['edit', 'file', 'navigate', 'window', 'view', 'tool']
   },
 
   getStats() {
@@ -91,6 +98,7 @@ const Storage = {
   recordPractice(result) {
     const stats = this.getStats();
     const today = this.getToday();
+    const mode = result.mode || 'training';
 
     stats.totalPractice++;
     if (result.correct) {
@@ -133,6 +141,16 @@ const Storage = {
       }
     }
 
+    if (!stats.modeStats[mode]) {
+      stats.modeStats[mode] = { total: 0, correct: 0, wrong: 0 };
+    }
+    stats.modeStats[mode].total++;
+    if (result.correct) {
+      stats.modeStats[mode].correct++;
+    } else {
+      stats.modeStats[mode].wrong++;
+    }
+
     if (!stats.dailyStats[today]) {
       stats.dailyStats[today] = { total: 0, correct: 0, wrong: 0, combo: 0 };
     }
@@ -158,6 +176,32 @@ const Storage = {
     this.saveHistory(history);
 
     return stats;
+  },
+
+  recordSession(sessionData) {
+    const stats = this.getStats();
+    const session = {
+      id: Date.now(),
+      mode: sessionData.mode || 'training',
+      scene: sessionData.scene || null,
+      category: sessionData.category || null,
+      total: sessionData.total || 0,
+      correct: sessionData.correct || 0,
+      wrong: sessionData.wrong || 0,
+      maxCombo: sessionData.maxCombo || 0,
+      avgReactionTime: sessionData.avgReactionTime || 0,
+      wrongCategories: sessionData.wrongCategories || {},
+      timestamp: Date.now(),
+      date: this.getToday()
+    };
+
+    stats.sessions.unshift(session);
+    if (stats.sessions.length > 50) {
+      stats.sessions = stats.sessions.slice(0, 50);
+    }
+
+    this.saveStats(stats);
+    return session;
   },
 
   updateWeakCategories(stats) {

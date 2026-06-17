@@ -1040,6 +1040,249 @@ body {
   font-weight: 600;
 }
 
+.weak-item-list {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.weak-item-list:hover {
+  background: #fff0f0;
+  transform: translateX(4px);
+}
+
+.mode-compare {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.mode-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.mode-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.mode-card-icon {
+  font-size: 24px;
+}
+
+.mode-card-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.mode-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mode-stat-label {
+  font-size: 12px;
+  color: #999;
+}
+
+.mode-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.mode-stat-value.correct {
+  color: #34c759;
+}
+
+.mode-stat-value.wrong {
+  color: #ff3b30;
+}
+
+.mode-stat-value.accuracy {
+  color: #667eea;
+}
+
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.session-item {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.session-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.session-item.expanded {
+  border-left: 4px solid #667eea;
+}
+
+.session-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.session-mode-icon {
+  font-size: 28px;
+  width: 40px;
+  text-align: center;
+}
+
+.session-main-info {
+  flex: 1;
+}
+
+.session-mode-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+.session-time {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.session-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.session-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.session-stat-label {
+  font-size: 11px;
+  color: #999;
+}
+
+.session-stat-value {
+  font-weight: 600;
+  color: #333;
+}
+
+.session-stat-value.correct {
+  color: #34c759;
+}
+
+.session-stat-value.wrong {
+  color: #ff3b30;
+}
+
+.session-toggle {
+  font-size: 18px;
+  color: #ccc;
+  transition: transform 0.2s;
+}
+
+.session-item.expanded .session-toggle {
+  transform: rotate(180deg);
+}
+
+.session-detail {
+  display: none;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.session-item.expanded .session-detail {
+  display: block;
+}
+
+.session-detail h4 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.session-wrong-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-wrong-cat {
+  padding: 4px 12px;
+  background: #fff0f0;
+  color: #ff3b30;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.session-no-wrong {
+  color: #34c759;
+  font-size: 13px;
+}
+
+.overview-value.correct {
+  color: #34c759;
+}
+
+.overview-value.wrong {
+  color: #ff3b30;
+}
+
+.category-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.category-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f5f7fa;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.category-checkbox:hover {
+  background: #e8ecf1;
+}
+
+.category-checkbox input {
+  accent-color: #667eea;
+}
+
+.category-checkbox.checked {
+  background: #e8eaff;
+  color: #667eea;
+}
+
 .settings-section {
   background: white;
   border-radius: 16px;

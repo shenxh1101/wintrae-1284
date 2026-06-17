@@ -308,6 +308,20 @@
             </div>
           </div>
           <div class="overview-card">
+            <div class="overview-icon">✅</div>
+            <div class="overview-info">
+              <div class="overview-value correct" id="total-correct">0</div>
+              <div class="overview-label">累计答对</div>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-icon">❌</div>
+            <div class="overview-info">
+              <div class="overview-value wrong" id="total-wrong">0</div>
+              <div class="overview-label">累计答错</div>
+            </div>
+          </div>
+          <div class="overview-card">
             <div class="overview-icon">🔥</div>
             <div class="overview-info">
               <div class="overview-value" id="max-combo">0</div>
@@ -315,12 +329,17 @@
             </div>
           </div>
           <div class="overview-card">
-            <div class="overview-icon">✅</div>
+            <div class="overview-icon">📊</div>
             <div class="overview-info">
               <div class="overview-value" id="total-accuracy">0%</div>
               <div class="overview-label">总正确率</div>
             </div>
           </div>
+        </div>
+
+        <div class="stats-section">
+          <h3 class="section-title">模式对比</h3>
+          <div class="mode-compare" id="mode-compare"></div>
         </div>
 
         <div class="stats-section">
@@ -341,8 +360,13 @@
         </div>
 
         <div class="stats-section">
-          <h3 class="section-title">薄弱类别</h3>
+          <h3 class="section-title">薄弱类别（点击开始专项复习）</h3>
           <div class="weak-list" id="weak-list"></div>
+        </div>
+
+        <div class="stats-section">
+          <h3 class="section-title">最近练习记录</h3>
+          <div class="session-list" id="session-list"></div>
         </div>
       </div>
 
@@ -412,6 +436,13 @@
               <option value="180">180 秒</option>
             </select>
           </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">挑战题库范围</span>
+              <span class="setting-desc">限时挑战中出现的快捷键类别</span>
+            </div>
+          </div>
+          <div class="category-checkboxes" id="challenge-category-checkboxes"></div>
         </div>
 
         <div class="settings-section">

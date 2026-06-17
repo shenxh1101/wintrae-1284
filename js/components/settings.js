@@ -22,6 +22,56 @@ const SettingsPage = {
     
     const challengeTimeEl = document.getElementById('setting-challenge-time');
     if (challengeTimeEl) challengeTimeEl.value = settings.challengeTime;
+
+    this.renderChallengeCategories();
+  },
+
+  renderChallengeCategories() {
+    const container = document.getElementById('challenge-category-checkboxes');
+    if (!container) return;
+
+    const settings = Storage.getSettings();
+    const selected = settings.challengeCategories || [];
+
+    container.innerHTML = Object.entries(shortcutData.categories).map(([key, cat]) => {
+      const isChecked = selected.includes(key);
+      return `
+        <label class="category-checkbox ${isChecked ? 'checked' : ''}">
+          <input type="checkbox" value="${key}" ${isChecked ? 'checked' : ''} onchange="SettingsPage.toggleChallengeCategory('${key}', this.checked)">
+          <span>${cat.icon} ${cat.name}</span>
+        </label>
+      `;
+    }).join('');
+  },
+
+  toggleChallengeCategory(category, checked) {
+    const settings = Storage.getSettings();
+    let categories = settings.challengeCategories || [];
+
+    if (checked) {
+      if (!categories.includes(category)) {
+        categories.push(category);
+      }
+    } else {
+      categories = categories.filter(c => c !== category);
+    }
+
+    if (categories.length === 0) {
+      categories = [category];
+      const input = document.querySelector(`#challenge-category-checkboxes input[value="${category}"]`);
+      if (input) input.checked = true;
+    }
+
+    settings.challengeCategories = categories;
+    Storage.saveSettings(settings);
+
+    this.renderChallengeCategories();
+
+    if (typeof ChallengePage !== 'undefined' && ChallengePage.updateSettings) {
+      ChallengePage.updateSettings();
+    }
+
+    AudioManager.playClick();
   },
 
   bindEvents() {

@@ -1,4 +1,6 @@
 const StatsPage = {
+  expandedSessions: {},
+
   init() {
     this.bindEvents();
     this.renderStats();
@@ -15,10 +17,12 @@ const StatsPage = {
 
   renderStats() {
     this.renderOverview();
+    this.renderModeCompare();
     this.renderAccuracyChart();
     this.renderSceneMastery();
     this.renderRecommendations();
     this.renderWeakCategories();
+    this.renderSessions();
   },
 
   renderOverview() {
@@ -28,13 +32,62 @@ const StatsPage = {
 
     const dailyEl = document.getElementById('daily-practice');
     const totalEl = document.getElementById('total-practice');
+    const correctEl = document.getElementById('total-correct');
+    const wrongEl = document.getElementById('total-wrong');
     const comboEl = document.getElementById('max-combo');
     const accuracyEl = document.getElementById('total-accuracy');
 
     if (dailyEl) dailyEl.textContent = todayCount;
     if (totalEl) totalEl.textContent = stats.totalPractice;
+    if (correctEl) correctEl.textContent = stats.totalCorrect;
+    if (wrongEl) wrongEl.textContent = stats.totalWrong;
     if (comboEl) comboEl.textContent = stats.maxCombo;
     if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
+  },
+
+  renderModeCompare() {
+    const container = document.getElementById('mode-compare');
+    if (!container) return;
+
+    const stats = Storage.getStats();
+    const modeStats = stats.modeStats || {};
+
+    const modes = [
+      { key: 'training', name: '训练模式', icon: '🎯' },
+      { key: 'challenge', name: '限时挑战', icon: '⚡' },
+      { key: 'review', name: '专项复习', icon: '📚' }
+    ];
+
+    container.innerHTML = modes.map(mode => {
+      const data = modeStats[mode.key] || { total: 0, correct: 0, wrong: 0 };
+      const accuracy = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+      return `
+        <div class="mode-card">
+          <div class="mode-card-header">
+            <span class="mode-card-icon">${mode.icon}</span>
+            <span>${mode.name}</span>
+          </div>
+          <div class="mode-card-stats">
+            <div class="mode-stat">
+              <span class="mode-stat-label">总练习</span>
+              <span class="mode-stat-value">${data.total}</span>
+            </div>
+            <div class="mode-stat">
+              <span class="mode-stat-label">正确率</span>
+              <span class="mode-stat-value accuracy">${accuracy}%</span>
+            </div>
+            <div class="mode-stat">
+              <span class="mode-stat-label">答对</span>
+              <span class="mode-stat-value correct">${data.correct}</span>
+            </div>
+            <div class="mode-stat">
+              <span class="mode-stat-label">答错</span>
+              <span class="mode-stat-value wrong">${data.wrong}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
   },
 
   renderAccuracyChart() {
@@ -162,6 +215,9 @@ const StatsPage = {
     if (type === 'scene' && sceneId) {
       TrainingPage.startScene(sceneId);
       App.navigateTo('training');
+    } else if (type === 'category' && category) {
+      TrainingPage.startReview(category);
+      App.navigateTo('training');
     } else {
       App.navigateTo('training');
     }
@@ -192,13 +248,127 @@ const StatsPage = {
       const totalInfo = weak.total ? ` · 共 ${weak.total} 题` : '';
       
       return `
-        <div class="weak-item-list">
+        <div class="weak-item-list" onclick="StatsPage.startReview('${weak.category}')">
           <span style="font-size: 20px; margin-right: 8px;">${icon}</span>
           <span class="weak-name">${name}</span>
           <span class="weak-count">正确率 ${weak.accuracy}%${totalInfo} · 错误 ${weak.wrong} 次</span>
         </div>
       `;
     }).join('');
+  },
+
+  startReview(category) {
+    TrainingPage.startReview(category);
+    App.navigateTo('training');
+    AudioManager.playClick();
+  },
+
+  renderSessions() {
+    const container = document.getElementById('session-list');
+    if (!container) return;
+
+    const stats = Storage.getStats();
+    const sessions = stats.sessions || [];
+
+    if (sessions.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding: 20px;">
+          <div class="empty-icon">📝</div>
+          <p>暂无练习记录，快去练习吧！</p>
+        </div>
+      `;
+      return;
+    }
+
+    const modeInfo = {
+      training: { name: '训练模式', icon: '🎯' },
+      challenge: { name: '限时挑战', icon: '⚡' },
+      review: { name: '专项复习', icon: '📚' }
+    };
+
+    container.innerHTML = sessions.slice(0, 10).map(session => {
+      const info = modeInfo[session.mode] || { name: session.mode, icon: '📌' };
+      const timeStr = this.formatTime(session.timestamp);
+      const accuracy = session.total > 0 ? Math.round((session.correct / session.total) * 100) : 0;
+      const isExpanded = this.expandedSessions[session.id];
+      const wrongCats = Object.entries(session.wrongCategories || {});
+
+      return `
+        <div class="session-item ${isExpanded ? 'expanded' : ''}" onclick="StatsPage.toggleSession(${session.id})">
+          <div class="session-header">
+            <span class="session-mode-icon">${info.icon}</span>
+            <div class="session-main-info">
+              <div class="session-mode-name">${info.name}${session.scene ? ' · ' + this.getSceneName(session.scene) : ''}${session.category ? ' · ' + this.getCategoryName(session.category) : ''}</div>
+              <div class="session-time">${timeStr}</div>
+            </div>
+            <div class="session-stats">
+              <div class="session-stat">
+                <span class="session-stat-label">总题数</span>
+                <span class="session-stat-value">${session.total}</span>
+              </div>
+              <div class="session-stat">
+                <span class="session-stat-label">正确</span>
+                <span class="session-stat-value correct">${session.correct}</span>
+              </div>
+              <div class="session-stat">
+                <span class="session-stat-label">错误</span>
+                <span class="session-stat-value wrong">${session.wrong}</span>
+              </div>
+              <div class="session-stat">
+                <span class="session-stat-label">最高连击</span>
+                <span class="session-stat-value">${session.maxCombo}</span>
+              </div>
+            </div>
+            <span class="session-toggle">▼</span>
+          </div>
+          <div class="session-detail">
+            <h4>错误类别分布</h4>
+            ${wrongCats.length > 0 ? 
+              `<div class="session-wrong-cats">
+                ${wrongCats.map(([cat, count]) => {
+                  const catInfo = shortcutData.categories[cat];
+                  const name = catInfo ? catInfo.name : cat;
+                  return `<span class="session-wrong-cat">${name} · ${count}次</span>`;
+                }).join('')}
+              </div>` :
+              `<span class="session-no-wrong">✅ 全对，没有错误！</span>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  toggleSession(id) {
+    this.expandedSessions[id] = !this.expandedSessions[id];
+    this.renderSessions();
+    AudioManager.playClick();
+  },
+
+  formatTime(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+    
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${month}月${day}日 ${hours}:${minutes}`;
+  },
+
+  getSceneName(sceneId) {
+    const scene = shortcutData.scenes.find(s => s.id === sceneId);
+    return scene ? scene.name : sceneId;
+  },
+
+  getCategoryName(catId) {
+    const cat = shortcutData.categories[catId];
+    return cat ? cat.name : catId;
   },
 
   onShow() {

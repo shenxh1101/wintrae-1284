@@ -10,7 +10,9 @@ const ChallengePage = {
   currentQuestion: null,
   questionStartTime: 0,
   isAnswering: false,
+  wrongCategories: {},
   settings: null,
+  filteredShortcuts: [],
 
   init() {
     this.settings = Storage.getSettings();
@@ -66,7 +68,16 @@ const ChallengePage = {
     this.maxCombo = 0;
     this.correctCount = 0;
     this.wrongCount = 0;
+    this.wrongCategories = {};
     this.isRunning = true;
+
+    const selectedCategories = this.settings.challengeCategories || Object.keys(shortcutData.categories);
+    this.filteredShortcuts = shortcutData.challengeShortcuts.filter(s => 
+      selectedCategories.includes(s.category)
+    );
+    if (this.filteredShortcuts.length === 0) {
+      this.filteredShortcuts = [...shortcutData.challengeShortcuts];
+    }
 
     document.getElementById('challenge-start').style.display = 'none';
     document.getElementById('challenge-result').style.display = 'none';
@@ -114,7 +125,9 @@ const ChallengePage = {
   },
 
   nextQuestion() {
-    const shortcuts = shortcutData.challengeShortcuts;
+    const shortcuts = this.filteredShortcuts.length > 0 
+      ? this.filteredShortcuts 
+      : shortcutData.challengeShortcuts;
     const randomIndex = Math.floor(Math.random() * shortcuts.length);
     this.currentQuestion = shortcuts[randomIndex];
     this.questionStartTime = Date.now();
@@ -216,6 +229,14 @@ const ChallengePage = {
       this.combo = 0;
     }
 
+    const category = this.currentQuestion.category;
+    if (category) {
+      if (!this.wrongCategories[category]) {
+        this.wrongCategories[category] = 0;
+      }
+      this.wrongCategories[category]++;
+    }
+
     const feedback = document.getElementById('challenge-feedback');
     if (feedback) {
       const correctKeys = KeyListener.formatKeys(this.currentQuestion.keys);
@@ -272,6 +293,15 @@ const ChallengePage = {
     document.getElementById('challenge-final-combo').textContent = this.maxCombo;
     document.getElementById('challenge-final-accuracy').textContent = `${accuracy}%`;
 
+    Storage.recordSession({
+      mode: 'challenge',
+      total: total,
+      correct: this.correctCount,
+      wrong: this.wrongCount,
+      maxCombo: this.maxCombo,
+      wrongCategories: { ...this.wrongCategories }
+    });
+
     AudioManager.playSuccess();
   },
 
@@ -298,6 +328,8 @@ const ChallengePage = {
     this.maxCombo = 0;
     this.correctCount = 0;
     this.wrongCount = 0;
+    this.wrongCategories = {};
+    this.filteredShortcuts = [];
     this.currentQuestion = null;
     KeyListener.clearPressedKeys();
   },

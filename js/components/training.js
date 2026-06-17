@@ -1,5 +1,7 @@
 const TrainingPage = {
   currentScene: null,
+  currentCategory: null,
+  mode: 'training',
   currentQuestions: [],
   currentIndex: 0,
   combo: 0,
@@ -77,7 +79,9 @@ const TrainingPage = {
     const resultRetry = document.getElementById('result-retry');
     if (resultRetry) {
       resultRetry.addEventListener('click', () => {
-        if (this.currentScene) {
+        if (this.mode === 'review' && this.currentCategory) {
+          this.startReview(this.currentCategory);
+        } else if (this.currentScene) {
           this.startScene(this.currentScene);
         }
       });
@@ -100,7 +104,9 @@ const TrainingPage = {
   },
 
   startScene(sceneId) {
+    this.mode = 'training';
     this.currentScene = sceneId;
+    this.currentCategory = null;
     this.currentIndex = 0;
     this.combo = 0;
     this.maxCombo = 0;
@@ -113,6 +119,39 @@ const TrainingPage = {
     const questionsPerLevel = this.settings.questionsPerLevel || 10;
     
     this.currentQuestions = this.shuffleArray([...shortcuts]).slice(0, Math.min(questionsPerLevel, shortcuts.length));
+
+    document.getElementById('training-scene-select').style.display = 'none';
+    document.getElementById('training-result').style.display = 'none';
+    document.getElementById('training-game').style.display = 'block';
+
+    this.updateProgress();
+    this.nextQuestion();
+  },
+
+  startReview(category) {
+    this.mode = 'review';
+    this.currentScene = null;
+    this.currentCategory = category;
+    this.currentIndex = 0;
+    this.combo = 0;
+    this.maxCombo = 0;
+    this.errors = 0;
+    this.correctCount = 0;
+    this.totalReactionTime = 0;
+    this.wrongCategories = {};
+
+    const allShortcuts = [];
+    for (const sceneId of Object.keys(shortcutData.shortcuts)) {
+      const sceneShortcuts = shortcutData.shortcuts[sceneId];
+      for (const s of sceneShortcuts) {
+        if (s.category === category) {
+          allShortcuts.push({ ...s, scene: sceneId });
+        }
+      }
+    }
+
+    const questionsPerLevel = this.settings.questionsPerLevel || 10;
+    this.currentQuestions = this.shuffleArray([...allShortcuts]).slice(0, Math.min(questionsPerLevel, allShortcuts.length));
 
     document.getElementById('training-scene-select').style.display = 'none';
     document.getElementById('training-result').style.display = 'none';
@@ -209,6 +248,7 @@ const TrainingPage = {
     AudioManager.playCorrect();
 
     Storage.recordPractice({
+      mode: this.mode,
       scene: this.currentScene,
       category: this.currentQuestion.category,
       correct: true,
@@ -254,6 +294,7 @@ const TrainingPage = {
     AudioManager.playWrong();
 
     Storage.recordPractice({
+      mode: this.mode,
       scene: this.currentScene,
       category: this.currentQuestion.category,
       correct: false,
@@ -311,6 +352,16 @@ const TrainingPage = {
     const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
     const avgTime = correct > 0 ? Math.round(this.totalReactionTime / correct) : 0;
 
+    const resultIcon = document.querySelector('#training-result .result-icon');
+    const resultTitle = document.querySelector('#training-result h2');
+    if (this.mode === 'review') {
+      if (resultIcon) resultIcon.textContent = '📚';
+      if (resultTitle) resultTitle.textContent = '复习完成！';
+    } else {
+      if (resultIcon) resultIcon.textContent = '🎉';
+      if (resultTitle) resultTitle.textContent = '训练完成！';
+    }
+
     document.getElementById('result-total').textContent = total;
     document.getElementById('result-correct').textContent = correct;
     document.getElementById('result-wrong').textContent = wrong;
@@ -337,6 +388,18 @@ const TrainingPage = {
       weakEl.innerHTML = '';
     }
 
+    Storage.recordSession({
+      mode: this.mode,
+      scene: this.currentScene,
+      category: this.currentCategory,
+      total: total,
+      correct: correct,
+      wrong: wrong,
+      maxCombo: this.maxCombo,
+      avgReactionTime: avgTime,
+      wrongCategories: { ...this.wrongCategories }
+    });
+
     AudioManager.playSuccess();
   },
 
@@ -349,6 +412,8 @@ const TrainingPage = {
 
   reset() {
     this.currentScene = null;
+    this.currentCategory = null;
+    this.mode = 'training';
     this.currentQuestions = [];
     this.currentIndex = 0;
     this.combo = 0;
