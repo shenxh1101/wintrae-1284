@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>快捷键大师 - 键盘记忆训练游戏</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <div id="navbar">
+      <div class="nav-left">
+        <span class="logo">⌨️</span>
+        <span class="app-title">快捷键大师</span>
+      </div>
+      <div class="nav-right">
+        <button class="nav-btn" data-page="home" title="首页">🏠</button>
+        <button class="nav-btn" data-page="training" title="训练关卡">🎯</button>
+        <button class="nav-btn" data-page="challenge" title="限时挑战">⚡</button>
+        <button class="nav-btn" data-page="atlas" title="快捷键图鉴">📖</button>
+        <button class="nav-btn" data-page="stats" title="成绩统计">📊</button>
+        <button class="nav-btn settings-btn" data-page="settings" title="设置">⚙️</button>
+      </div>
+    </div>
+
+    <div id="main-content">
+      <div id="page-home" class="page active">
+        <div class="hero-section">
+          <h1>欢迎来到快捷键大师</h1>
+          <p class="subtitle">轻松掌握键盘快捷键，让你的效率飞起来！</p>
+        </div>
+        
+        <div class="quick-stats">
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-total">0</div>
+              <div class="stat-label">总练习次数</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-streak">0</div>
+              <div class="stat-label">最高连击</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-accuracy">0%</div>
+              <div class="stat-label">正确率</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-avg-time">-</div>
+              <div class="stat-label">平均反应</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="section-title">选择练习场景</h2>
+        <div class="scene-grid" id="scene-grid"></div>
+
+        <div class="quick-actions">
+          <button class="action-btn primary" id="quick-challenge">
+            <span class="action-icon">⚡</span>
+            <span class="action-text">
+              <strong>快速挑战</strong>
+              <small>60秒极限挑战</small>
+            </span>
+          </button>
+          <button class="action-btn" id="quick-atlas">
+            <span class="action-icon">📖</span>
+            <span class="action-text">
+              <strong>快捷键图鉴</strong>
+              <small>查看所有快捷键</small>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div id="page-training" class="page">
+        <div class="page-header">
+          <button class="back-btn" id="back-from-training">← 返回</button>
+          <h2>训练关卡</h2>
+          <div class="training-progress">
+            <span id="training-progress-text">0 / 0</span>
+          </div>
+        </div>
+
+        <div id="training-scene-select">
+          <h3 class="sub-title">选择场景开始训练</h3>
+          <div class="scene-grid" id="training-scene-grid"></div>
+        </div>
+
+        <div id="training-game" style="display: none;">
+          <div class="game-stats-bar">
+            <div class="game-stat">
+              <span class="stat-label">关卡</span>
+              <span class="stat-value" id="game-level">1</span>
+            </div>
+            <div class="game-stat">
+              <span class="stat-label">连击</span>
+              <span class="stat-value combo" id="game-combo">0</span>
+            </div>
+            <div class="game-stat">
+              <span class="stat-label">错误</span>
+              <span class="stat-value errors" id="game-errors">0</span>
+            </div>
+            <div class="game-stat">
+              <span class="stat-label">反应</span>
+              <span class="stat-value" id="game-time">-</span>
+            </div>
+          </div>
+
+          <div class="game-area">
+            <div class="task-display">
+              <div class="task-hint">请按下快捷键：</div>
+              <div class="task-action" id="task-action">复制</div>
+              <div class="task-example" id="task-example">想复制一段文字时</div>
+            </div>
+
+            <div class="key-display" id="key-display">
+              <div class="key-hint">等待按键...</div>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+          </div>
+
+          <div class="game-controls">
+            <button class="control-btn" id="hint-btn">💡 提示</button>
+            <button class="control-btn danger" id="quit-training">退出训练</button>
+          </div>
+        </div>
+
+        <div id="training-result" style="display: none;">
+          <div class="result-card">
+            <div class="result-icon">🎉</div>
+            <h2>训练完成！</h2>
+            <div class="result-stats">
+              <div class="result-stat">
+                <span class="result-label">总题数</span>
+                <span class="result-value" id="result-total">0</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">正确</span>
+                <span class="result-value correct" id="result-correct">0</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">错误</span>
+                <span class="result-value wrong" id="result-wrong">0</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">正确率</span>
+                <span class="result-value" id="result-accuracy">0%</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">最高连击</span>
+                <span class="result-value combo" id="result-combo">0</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">平均反应</span>
+                <span class="result-value" id="result-avg-time">-</span>
+              </div>
+            </div>
+            <div class="weak-categories" id="weak-categories"></div>
+            <div class="result-actions">
+              <button class="result-btn primary" id="result-retry">再来一次</button>
+              <button class="result-btn" id="result-back">返回选择</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-challenge" class="page">
+        <div class="page-header">
+          <button class="back-btn" id="back-from-challenge">← 返回</button>
+          <h2>限时挑战</h2>
+          <div class="challenge-timer">
+            <span id="challenge-time">60</span>秒
+          </div>
+        </div>
+
+        <div id="challenge-start">
+          <div class="challenge-intro">
+            <div class="challenge-icon">⚡</div>
+            <h2>60秒极限挑战</h2>
+            <p>在60秒内尽可能多地完成快捷键任务，挑战你的极限！</p>
+            <div class="challenge-rules">
+              <div class="rule-item">✓ 随机出现各类常用快捷键</div>
+              <div class="rule-item">✓ 答对继续，答错不扣分</div>
+              <div class="rule-item">✓ 连击越高越有成就感</div>
+            </div>
+            <button class="start-btn" id="start-challenge">开始挑战</button>
+          </div>
+        </div>
+
+        <div id="challenge-game" style="display: none;">
+          <div class="game-stats-bar">
+            <div class="game-stat">
+              <span class="stat-label">得分</span>
+              <span class="stat-value score" id="challenge-score">0</span>
+            </div>
+            <div class="game-stat">
+              <span class="stat-label">连击</span>
+              <span class="stat-value combo" id="challenge-combo">0</span>
+            </div>
+            <div class="game-stat">
+              <span class="stat-label">正确</span>
+              <span class="stat-value correct" id="challenge-correct">0</span>
+            </div>
+            <div class="game-stat">
+              <span class="stat-label">错误</span>
+              <span class="stat-value errors" id="challenge-wrong">0</span>
+            </div>
+          </div>
+
+          <div class="game-area">
+            <div class="task-display">
+              <div class="task-hint">请按下：</div>
+              <div class="task-action large" id="challenge-task-action">复制</div>
+            </div>
+
+            <div class="key-display" id="challenge-key-display">
+              <div class="key-hint">准备...</div>
+            </div>
+
+            <div class="feedback" id="challenge-feedback"></div>
+          </div>
+        </div>
+
+        <div id="challenge-result" style="display: none;">
+          <div class="result-card">
+            <div class="result-icon">🏆</div>
+            <h2>挑战结束！</h2>
+            <div class="final-score">
+              <span class="score-label">最终得分</span>
+              <span class="score-value" id="final-score">0</span>
+            </div>
+            <div class="result-stats">
+              <div class="result-stat">
+                <span class="result-label">答对</span>
+                <span class="result-value correct" id="challenge-final-correct">0</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">答错</span>
+                <span class="result-value wrong" id="challenge-final-wrong">0</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">最高连击</span>
+                <span class="result-value combo" id="challenge-final-combo">0</span>
+              </div>
+              <div class="result-stat">
+                <span class="result-label">正确率</span>
+                <span class="result-value" id="challenge-final-accuracy">0%</span>
+              </div>
+            </div>
+            <div class="result-actions">
+              <button class="result-btn primary" id="challenge-retry">再来一次</button>
+              <button class="result-btn" id="challenge-back">返回</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-atlas" class="page">
+        <div class="page-header">
+          <button class="back-btn" id="back-from-atlas">← 返回</button>
+          <h2>快捷键图鉴</h2>
+        </div>
+
+        <div class="atlas-filters">
+          <div class="filter-group">
+            <span class="filter-label">场景：</span>
+            <div class="filter-buttons" id="atlas-scene-filters"></div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">分类：</span>
+            <div class="filter-buttons" id="atlas-category-filters"></div>
+          </div>
+        </div>
+
+        <div class="atlas-content" id="atlas-content"></div>
+      </div>
+
+      <div id="page-stats" class="page">
+        <div class="page-header">
+          <button class="back-btn" id="back-from-stats">← 返回</button>
+          <h2>成绩统计</h2>
+        </div>
+
+        <div class="stats-overview">
+          <div class="overview-card">
+            <div class="overview-icon">📅</div>
+            <div class="overview-info">
+              <div class="overview-value" id="daily-practice">0</div>
+              <div class="overview-label">今日练习次数</div>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-icon">🎯</div>
+            <div class="overview-info">
+              <div class="overview-value" id="total-practice">0</div>
+              <div class="overview-label">总练习次数</div>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-icon">🔥</div>
+            <div class="overview-info">
+              <div class="overview-value" id="max-combo">0</div>
+              <div class="overview-label">历史最高连击</div>
+            </div>
+          </div>
+          <div class="overview-card">
+            <div class="overview-icon">✅</div>
+            <div class="overview-info">
+              <div class="overview-value" id="total-accuracy">0%</div>
+              <div class="overview-label">总正确率</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-section">
+          <h3 class="section-title">正确率趋势（近7天）</h3>
+          <div class="chart-container">
+            <div class="bar-chart" id="accuracy-chart"></div>
+          </div>
+        </div>
+
+        <div class="stats-section">
+          <h3 class="section-title">各场景掌握度</h3>
+          <div class="scene-mastery" id="scene-mastery"></div>
+        </div>
+
+        <div class="stats-section">
+          <h3 class="section-title">推荐复习关卡</h3>
+          <div class="recommend-list" id="recommend-list"></div>
+        </div>
+
+        <div class="stats-section">
+          <h3 class="section-title">薄弱类别</h3>
+          <div class="weak-list" id="weak-list"></div>
+        </div>
+      </div>
+
+      <div id="page-settings" class="page">
+        <div class="page-header">
+          <button class="back-btn" id="back-from-settings">← 返回</button>
+          <h2>设置</h2>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="section-title">游戏设置</h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">音效</span>
+              <span class="setting-desc">答对答错时播放提示音</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-sound" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">键盘提示</span>
+              <span class="setting-desc">显示虚拟键盘提示</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-key-hint" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">自动下一题</span>
+              <span class="setting-desc">答对后自动进入下一题</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="setting-auto-next" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="section-title">难度设置</h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">每关题目数</span>
+              <span class="setting-desc">训练模式每关的题目数量</span>
+            </div>
+            <select class="setting-select" id="setting-questions-per-level">
+              <option value="5">5 题</option>
+              <option value="10" selected>10 题</option>
+              <option value="15">15 题</option>
+              <option value="20">20 题</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">挑战时长</span>
+              <span class="setting-desc">限时挑战的时间长度</span>
+            </div>
+            <select class="setting-select" id="setting-challenge-time">
+              <option value="30">30 秒</option>
+              <option value="60" selected>60 秒</option>
+              <option value="120">120 秒</option>
+              <option value="180">180 秒</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3 class="section-title">数据管理</h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">导出数据</span>
+              <span class="setting-desc">将练习数据导出为 JSON 文件</span>
+            </div>
+            <button class="setting-btn" id="export-data">导出</button>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-name">清除数据</span>
+              <span class="setting-desc">清除所有练习记录和设置</span>
+            </div>
+            <button class="setting-btn danger" id="clear-data">清除</button>
+          </div>
+        </div>
+
+        <div class="settings-section about-section">
+          <h3 class="section-title">关于</h3>
+          <p class="about-text">快捷键大师 v1.0</p>
+          <p class="about-text">帮助你快速记忆键盘快捷键，提升工作效率</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay" style="display: none;">
+    <div class="modal" id="modal">
+      <div class="modal-content">
+        <h3 id="modal-title">提示</h3>
+        <p id="modal-message">确定要执行此操作吗？</p>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn" id="modal-cancel">取消</button>
+        <button class="modal-btn primary" id="modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data/shortcuts.js"></script>
+  <script src="js/utils/storage.js"></script>
+  <script src="js/utils/keyListener.js"></script>
+  <script src="js/utils/audio.js"></script>
+  <script src="js/components/home.js"></script>
+  <script src="js/components/training.js"></script>
+  <script src="js/components/challenge.js"></script>
+  <script src="js/components/atlas.js"></script>
+  <script src="js/components/stats.js"></script>
+  <script src="js/components/settings.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
