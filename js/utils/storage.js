@@ -163,19 +163,21 @@ const Storage = {
   updateWeakCategories(stats) {
     const weakCategories = [];
     for (const [category, data] of Object.entries(stats.categoryStats)) {
-      if (data.total >= 3) {
-        const accuracy = data.correct / data.total;
-        if (accuracy < 0.6) {
-          weakCategories.push({
-            category,
-            accuracy: Math.round(accuracy * 100),
-            wrong: data.wrong
-          });
-        }
+      if (data.wrong >= 1) {
+        const accuracy = data.total > 0 ? data.correct / data.total : 0;
+        weakCategories.push({
+          category,
+          accuracy: Math.round(accuracy * 100),
+          wrong: data.wrong,
+          total: data.total
+        });
       }
     }
-    weakCategories.sort((a, b) => a.accuracy - b.accuracy);
-    stats.weakCategories = weakCategories.slice(0, 5);
+    weakCategories.sort((a, b) => {
+      if (a.wrong !== b.wrong) return b.wrong - a.wrong;
+      return a.accuracy - b.accuracy;
+    });
+    stats.weakCategories = weakCategories.slice(0, 6);
   },
 
   getToday() {

@@ -1,7 +1,8 @@
-const { app, BrowserWindow, Menu, globalShortcut, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
 
 let mainWindow = null;
+let isGameActive = false;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -32,49 +33,114 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('before-input-event', (event, input) => {
-    if (input.type === 'keyDown') {
-      const blockedKeys = ['w', 't', 'l', 's', 'n', 'o', 'p', 'q', 'r', 'd', 'h', 'j', 'k', 'u', 'b', 'i'];
-      
-      if ((input.control || input.meta) && !input.alt) {
-        if (blockedKeys.includes(input.key.toLowerCase())) {
-          event.preventDefault();
-        }
-      }
-      
-      if ((input.control || input.meta) && input.shift) {
-        if (['t', 'n', 'p', 'w', 'd'].includes(input.key.toLowerCase())) {
-          event.preventDefault();
-        }
-      }
-      
-      if (input.alt && input.key.toLowerCase() === 'tab') {
-        event.preventDefault();
-      }
-      
-      if (input.alt && input.key.toLowerCase() === 'f4') {
-        event.preventDefault();
-      }
-      
-      if (input.meta) {
-        const winBlocked = ['d', 'e', 'l', 'r', 'i', 'v', 'tab'];
-        if (winBlocked.includes(input.key.toLowerCase())) {
-          event.preventDefault();
-        }
-      }
-      
-      if (input.control && input.shift && input.key.toLowerCase() === 'escape') {
-        event.preventDefault();
-      }
-      
-      if (input.meta && input.shift && input.key.toLowerCase() === 's') {
-        event.preventDefault();
-      }
-      
-      if (input.control && input.key.toLowerCase() === 'tab') {
-        event.preventDefault();
-      }
+    if (input.type !== 'keyDown') return;
+    
+    const isCtrl = input.control || input.meta;
+    const key = input.key.toLowerCase();
+
+    if (isCtrl && ['w', 't', 'l', 's', 'n', 'o', 'p', 'r', 'd', 'h', 'j',
+        'k', 'u', 'b', 'i', 'g', 'f', 'a', 'x', 'c', 'v', 'z', 'y',
+        '+', '-', '0', '1', 'tab'].includes(key)) {
+      event.preventDefault();
+      sendKeyEventToPage(input);
+      return;
+    }
+
+    if (isCtrl && input.shift && ['t', 'n', 'p', 'w', 'd', 'z', 'g', 's', 'esc'].includes(key)) {
+      event.preventDefault();
+      sendKeyEventToPage(input);
+      return;
+    }
+
+    if (input.alt && ['tab', 'f4', 'arrowleft', 'arrowright'].includes(key)) {
+      event.preventDefault();
+      sendKeyEventToPage(input);
+      return;
+    }
+
+    if (input.meta && ['d', 'e', 'l', 'r', 'i', 'v', 'tab'].includes(key)) {
+      event.preventDefault();
+      sendKeyEventToPage(input);
+      return;
+    }
+
+    if (input.meta && input.shift && ['s'].includes(key)) {
+      event.preventDefault();
+      sendKeyEventToPage(input);
+      return;
+    }
+
+    if (isCtrl && input.shift && key === 'escape') {
+      event.preventDefault();
+      sendKeyEventToPage(input);
+      return;
+    }
+
+    if (key === 'f5') {
+      event.preventDefault();
+      sendKeyEventToPage(input);
+      return;
     }
   });
+}
+
+function sendKeyEventToPage(input) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  
+  const codeMap = {
+    'ctrl': 'ControlLeft', 'control': 'ControlLeft',
+    'shift': 'ShiftLeft',
+    'alt': 'AltLeft',
+    'meta': 'MetaLeft',
+    'tab': 'Tab',
+    'enter': 'Enter',
+    'escape': 'Escape', 'esc': 'Escape',
+    'backspace': 'Backspace',
+    'arrowup': 'ArrowUp', 'arrowdown': 'ArrowDown',
+    'arrowleft': 'ArrowLeft', 'arrowright': 'ArrowRight',
+    ' ': 'Space',
+    '+': 'Equal', '-': 'Minus',
+    '0': 'Digit0', '1': 'Digit1',
+    'f4': 'F4', 'f5': 'F5',
+  };
+
+  const keyLower = input.key.toLowerCase();
+  let code = codeMap[keyLower];
+  if (!code) {
+    if (keyLower.length === 1) {
+      code = 'Key' + keyLower.toUpperCase();
+    } else {
+      code = keyLower;
+    }
+  }
+
+  mainWindow.webContents.executeJavaScript(`
+    (function() {
+      var kd = new KeyboardEvent('keydown', {
+        key: '${input.key}',
+        code: '${code}',
+        ctrlKey: ${!!input.control},
+        shiftKey: ${!!input.shift},
+        altKey: ${!!input.alt},
+        metaKey: ${!!input.meta},
+        bubbles: true,
+        cancelable: true
+      });
+      document.dispatchEvent(kd);
+      
+      var ku = new KeyboardEvent('keyup', {
+        key: '${input.key}',
+        code: '${code}',
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        bubbles: true,
+        cancelable: true
+      });
+      setTimeout(function() { document.dispatchEvent(ku); }, 50);
+    })();
+  `).catch(() => {});
 }
 
 function createMenu() {
@@ -86,7 +152,6 @@ function createMenu() {
       submenu: [
         {
           label: '重新加载',
-          accelerator: 'CmdOrCtrl+R',
           click: () => {
             if (mainWindow) {
               mainWindow.reload();
@@ -95,8 +160,7 @@ function createMenu() {
         },
         { type: 'separator' },
         {
-          label: isMac ? '退出' : '退出',
-          accelerator: isMac ? 'Cmd+Q' : 'Ctrl+Q',
+          label: '退出',
           click: () => {
             app.quit();
           }
@@ -104,23 +168,10 @@ function createMenu() {
       ]
     },
     {
-      label: '编辑',
-      submenu: [
-        { label: '撤销', accelerator: 'CmdOrCtrl+Z', role: 'undo' },
-        { label: '重做', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo' },
-        { type: 'separator' },
-        { label: '剪切', accelerator: 'CmdOrCtrl+X', role: 'cut' },
-        { label: '复制', accelerator: 'CmdOrCtrl+C', role: 'copy' },
-        { label: '粘贴', accelerator: 'CmdOrCtrl+V', role: 'paste' },
-        { label: '全选', accelerator: 'CmdOrCtrl+A', role: 'selectAll' }
-      ]
-    },
-    {
       label: '视图',
       submenu: [
         {
           label: '放大',
-          accelerator: 'CmdOrCtrl+=',
           click: () => {
             if (mainWindow) {
               const currentZoom = mainWindow.webContents.getZoomLevel();
@@ -130,7 +181,6 @@ function createMenu() {
         },
         {
           label: '缩小',
-          accelerator: 'CmdOrCtrl+-',
           click: () => {
             if (mainWindow) {
               const currentZoom = mainWindow.webContents.getZoomLevel();
@@ -140,7 +190,6 @@ function createMenu() {
         },
         {
           label: '重置缩放',
-          accelerator: 'CmdOrCtrl+0',
           click: () => {
             if (mainWindow) {
               mainWindow.webContents.setZoomLevel(0);
@@ -150,7 +199,7 @@ function createMenu() {
         { type: 'separator' },
         {
           label: '全屏',
-          accelerator: isMac ? 'Ctrl+Cmd+F' : 'F11',
+          accelerator: 'F11',
           click: () => {
             if (mainWindow) {
               mainWindow.setFullScreen(!mainWindow.isFullScreen());
@@ -209,7 +258,6 @@ app.on('window-all-closed', () => {
 });
 
 app.on('will-quit', () => {
-  globalShortcut.unregisterAll();
 });
 
 app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling');

@@ -192,6 +192,7 @@ const ChallengePage = {
     
     Storage.recordPractice({
       mode: 'challenge',
+      category: this.currentQuestion.category || null,
       correct: true,
       reactionTime: reactionTime,
       combo: this.combo
@@ -226,6 +227,7 @@ const ChallengePage = {
     
     Storage.recordPractice({
       mode: 'challenge',
+      category: this.currentQuestion.category || null,
       correct: false,
       combo: 0
     });
@@ -270,26 +272,7 @@ const ChallengePage = {
     document.getElementById('challenge-final-combo').textContent = this.maxCombo;
     document.getElementById('challenge-final-accuracy').textContent = `${accuracy}%`;
 
-    this.saveChallengeResult();
     AudioManager.playSuccess();
-  },
-
-  saveChallengeResult() {
-    const total = this.correctCount + this.wrongCount;
-    for (let i = 0; i < this.correctCount; i++) {
-      Storage.recordPractice({
-        mode: 'challenge',
-        correct: true,
-        combo: i + 1
-      });
-    }
-    for (let i = 0; i < this.wrongCount; i++) {
-      Storage.recordPractice({
-        mode: 'challenge',
-        correct: false,
-        combo: 0
-      });
-    }
   },
 
   showStartScreen() {

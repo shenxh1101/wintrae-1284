@@ -189,12 +189,13 @@ const StatsPage = {
       const catInfo = shortcutData.categories[weak.category];
       const name = catInfo ? catInfo.name : weak.category;
       const icon = catInfo ? catInfo.icon : '📌';
+      const totalInfo = weak.total ? ` · 共 ${weak.total} 题` : '';
       
       return `
         <div class="weak-item-list">
           <span style="font-size: 20px; margin-right: 8px;">${icon}</span>
           <span class="weak-name">${name}</span>
-          <span class="weak-count">正确率 ${weak.accuracy}% · 错误 ${weak.wrong} 次</span>
+          <span class="weak-count">正确率 ${weak.accuracy}%${totalInfo} · 错误 ${weak.wrong} 次</span>
         </div>
       `;
     }).join('');
