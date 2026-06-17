@@ -1,0 +1,67 @@
+{
+  "name": "shortcut-master",
+  "version": "1.0.0",
+  "description": "快捷键大师 - 键盘记忆训练游戏",
+  "main": "electron.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "快捷键",
+    "键盘练习",
+    "效率工具"
+  ],
+  "author": "快捷键大师",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.shortcut.master",
+    "productName": "快捷键大师",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "css/**/*",
+      "js/**/*",
+      "electron.js"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "快捷键大师_${version}_${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "快捷键大师"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "category": "public.app-category.education",
+      "artifactName": "快捷键大师_${version}_${arch}.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Education",
+      "artifactName": "快捷键大师_${version}_${arch}.${ext}"
+    }
+  }
+}

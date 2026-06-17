@@ -149,10 +149,15 @@ const ChallengePage = {
       this.handleCorrect();
     } else if (pressedKeys.length >= targetKeys.length) {
       const hasModifier = pressedKeys.some(k => KeyListener.isModifierKey(k));
-      if (!hasModifier && pressedKeys.length === 1) {
-        return;
+      
+      if (targetKeys.length === 1) {
+        if (!hasModifier && pressedKeys.length === 1 && !KeyListener.isModifierKey(pressedKeys[0])) {
+          this.handleWrong();
+          return;
+        }
       }
-      if (pressedKeys.length > targetKeys.length) {
+      
+      if (pressedKeys.length >= targetKeys.length) {
         this.handleWrong();
       }
     }
@@ -184,6 +189,14 @@ const ChallengePage = {
     }
 
     AudioManager.playCorrect();
+    
+    Storage.recordPractice({
+      mode: 'challenge',
+      correct: true,
+      reactionTime: reactionTime,
+      combo: this.combo
+    });
+    
     this.updateStatsDisplay();
 
     setTimeout(() => {
@@ -196,6 +209,7 @@ const ChallengePage = {
   handleWrong() {
     if (!this.isRunning) return;
     
+    this.isAnswering = false;
     this.wrongCount++;
     if (this.combo > 0) {
       this.combo = 0;
@@ -209,6 +223,13 @@ const ChallengePage = {
     }
 
     AudioManager.playWrong();
+    
+    Storage.recordPractice({
+      mode: 'challenge',
+      correct: false,
+      combo: 0
+    });
+    
     this.updateStatsDisplay();
     KeyListener.clearPressedKeys();
 
@@ -216,7 +237,7 @@ const ChallengePage = {
       if (this.isRunning) {
         this.nextQuestion();
       }
-    }, 1000);
+    }, 800);
   },
 
   updateStatsDisplay() {

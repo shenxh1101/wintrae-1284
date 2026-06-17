@@ -174,10 +174,15 @@ const TrainingPage = {
       this.handleCorrect();
     } else if (pressedKeys.length >= targetKeys.length) {
       const hasModifier = pressedKeys.some(k => KeyListener.isModifierKey(k));
-      if (!hasModifier && pressedKeys.length === 1) {
-        return;
+      
+      if (targetKeys.length === 1) {
+        if (!hasModifier && pressedKeys.length === 1 && !KeyListener.isModifierKey(pressedKeys[0])) {
+          this.handleWrong();
+          return;
+        }
       }
-      if (pressedKeys.length > targetKeys.length) {
+      
+      if (pressedKeys.length >= targetKeys.length) {
         this.handleWrong();
       }
     }
@@ -227,6 +232,7 @@ const TrainingPage = {
   },
 
   handleWrong() {
+    this.isAnswering = false;
     this.errors++;
     if (this.combo > 0) {
       this.combo = 0;
@@ -255,14 +261,13 @@ const TrainingPage = {
     });
 
     this.updateStatsDisplay();
+    this.currentIndex++;
+    this.updateProgress();
     KeyListener.clearPressedKeys();
 
-    const keyDisplay = document.getElementById('key-display');
-    if (keyDisplay) {
-      setTimeout(() => {
-        keyDisplay.innerHTML = '<div class="key-hint">再试一次...</div>';
-      }, 1000);
-    }
+    setTimeout(() => {
+      this.nextQuestion();
+    }, 1200);
   },
 
   showHint() {
